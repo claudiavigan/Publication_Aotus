@@ -1,0 +1,25 @@
+R version 4.5.1 (2025-06-13)
+Platform: aarch64-apple-darwin20
+Running under: macOS Sequoia 15.6.1
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Europe/Madrid
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices df_unique datasets  methods   base     
+
+other attached packages:
+[1] sf_1.0-21        geosphere_1.5-20
+
+loaded via a namespace (and not attached):
+ [1] compiler_4.5.1     magrittr_2.0.4     class_7.3-23       DBI_1.2.3         
+ [5] tools_4.5.1        units_1.0-0        proxy_0.4-27       sp_2.2-0          
+ [9] Rcpp_1.1.0         KernSmooth_2.23-26 grid_4.5.1         e1071_1.7-16      
+[13] classInt_0.4-11    lattice_0.22-7    
