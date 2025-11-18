@@ -76,7 +76,7 @@ This script:
 - Reads tree coordinates from `data/raw/Trees_Reconyx.csv`
 - Calculates all pairwise distances (Haversine)
 - Exports:
-    - `output/tables/Trees_distance_matrix_long.csv`
+    - `data/processed/Trees_distance_matrix_long.csv`
     - `output/tables/Table_S2_tree_distances.csv`
 - Prints summary statistics
 - Writes session information to `output/logs/`
