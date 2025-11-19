@@ -45,8 +45,8 @@ if (!dir.exists(logs_dir))      dir.create(logs_dir,      recursive = TRUE)
 
 # Input files
 file_aot   <- file.path(processed_dir, "Aotus_Ind_Det_timeprocessed_03.csv")
-file_pheno <- file.path(raw_dir,       "pheno_clean.csv")
-file_clim  <- file.path(raw_dir,       "CLIM_98-25_clean.csv")
+file_pheno <- file.path(raw_dir,       "pheno.csv")
+file_clim  <- file.path(raw_dir,       "CLIM_98-25.csv")
 
 # 2. Load csvs ---------------------------------------------------------------
 # a) independent detections with adjusted timestamps
@@ -236,7 +236,7 @@ fig_tripanel <- (p1 / p2 / p3) +
 
 # 9. Save figures ------------------------------------------------------------ 
 ggsave(
-  filename = file.path(figures_dir, "Figure_4_tripanel_annual_pattern.pdf"),
+  filename = file.path(figures_dir, "Figure_4.pdf"),
   plot     = fig_tripanel,
   width    = 168,
   height   = 210,
