@@ -43,17 +43,9 @@ submitted to *Ecology & Evolution Nature Notes*.
 
 All analyses use **R** (version 4.5.1).
 
-To install required packages:
+To install required packages, run, at the beginning of each script:
 
-    install.packages(c("geosphere", "sf"))
-
-Additional packages here:
-
-    # - dplyr
-    # - ggplot2
-    # - lubridate
-    # - tidyr
-
+    install.packages(c("package1", "package2", "package..."))
 ---
 
 ## 3. How to Reproduce the Analyses
