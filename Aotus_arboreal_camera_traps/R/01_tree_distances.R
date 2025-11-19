@@ -8,7 +8,7 @@
 #           -> output/tables/Trees_distance_matrix_long.csv
 #       (2) Symmetric table with row means + total mean distance (Table S2)
 #           -> output/tables/Table_S2_tree_distances.csv
-#       (3) (Optional) sessionInfo() log
+#       (3) SessionInfo() log
 #           -> output/logs/sessionInfo_tree_distances.txt
 #
 # How to run:
@@ -37,7 +37,7 @@ library(sf)
 # All paths are relative to the project root
 data_file  <- file.path("data", "raw", "Trees_Reconyx.csv")
 
-processed_dir    <- file.path("data", "processed")   # <-- NEW
+processed_dir    <- file.path("data", "processed")   
 tables_dir       <- file.path("output", "tables")
 logs_dir         <- file.path("output", "logs")
 
@@ -143,7 +143,7 @@ write.csv(
   row.names = FALSE
 )
 
-# 6. (Optional) record session info for reproducibility ----------------------
+# 6. Record session info for reproducibility ----------------------
 #Uncomment if you want the log written to output/logs/
 # sink(file.path(logs_dir, "sessionInfo_tree_distances.txt"))
 # sessionInfo()
