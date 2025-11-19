@@ -99,7 +99,7 @@ print(cam_dates_table_FINAL)
 # Export supplementary table
 write.csv(
   cam_dates_table_FINAL,
-  file = file.path(tables_dir, "CameraTrapDays_CTNs.csv"),
+  file = file.path(tables_dir, "Table_S3.csv"),
   row.names = FALSE
 )
 
@@ -175,7 +175,7 @@ print(Campertree)
 
 # Save figure to output/figures/
 ggsave(
-  filename = file.path(figures_dir, "Fig_camera_recording_periods.png"),
+  filename = file.path(figures_dir, "Figure_S1.png"),
   plot     = Campertree,
   width    = 8,
   height   = 5,
