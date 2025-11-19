@@ -15,8 +15,8 @@ submitted to *Ecology & Evolution Nature Notes*.
     ├── R/                          # Analysis scripts (numbered)
     │   ├── 01_tree_distances.R     # Creates distance matrices (Table S2)
     │   ├── 02_camera_placement.R   # Calculates cameras activity periods (Table S3, Figure S1)
-    │   ├── 03_.R                   # (add later)
-    │   ├── 04_Model.R  # (add later)
+    │   ├── 03_behavior.R           # Calculates behavior proportions (Table S4, Figure 2)
+    │   ├── 04_night.R              # (add later)
     │   └── ...
     │
     ├── data/
@@ -42,7 +42,7 @@ submitted to *Ecology & Evolution Nature Notes*.
 
 All analyses use **R** (version 4.5.1).
 
-To install required packages, run, at the beginning of each script:
+To install required packages, run this line at the beginning of each script:
 
     install.packages(c("package1", "package2", "package..."))
 ---
@@ -98,10 +98,33 @@ This script:
 
 Run:
 
-source("R/02_camera_placement.R")
+    source("R/02_camera_placement.R")
 
-### 3.4. Script 03 — Flower visitation  
-*(Add details when ready)*
+---
+
+### 3.4. Script 03 — Behavior classification & proportions
+
+Script: `R/03_behavior.R`
+
+This script:
+
+- Reads independent Aotus detections from  
+  `data/raw/Aotus_Independent_Detections_01.csv`
+- Cleans and reclassifies behaviors
+- Flags infant presence 
+- Computes:
+  - Behavioral counts and percentages
+  - Summary behavior categories 
+- Exports:
+  - Dataset of Aotus independent detections with reclassified behaviors  → `data/processed/Ind_Det_Aotus_reclassified_02.csv`
+  - `output/tables/Table_S4.xlsx`
+  - `output/figures/Figure_2.pdf`
+- Writes session information for reproducibility to:  
+  `output/logs/sessionInfo_behavior.txt`
+
+Run:
+
+    source("R/03_behavior.R")
 
 ---
 
