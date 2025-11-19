@@ -16,7 +16,7 @@ submitted to *Ecology & Evolution Nature Notes*.
     │   ├── 01_tree_distances.R     # Creates distance matrices (Table S2)
     │   ├── 02_camera_placement.R   # Calculates cameras activity periods (Table S3, Figure S1)
     │   ├── 03_behavior.R           # Calculates behavior proportions (Table S4, Figure 2)
-    │   ├── 04_night.R              # (add later)
+    │   ├── 04_night_activiy.R      # Calulates the night activity pattern of Aotus (Figure 3)
     │   └── ...
     │
     ├── data/
@@ -125,6 +125,28 @@ This script:
 Run:
 
     source("R/03_behavior.R")
+
+---
+
+### 3.5. Script 04 — Night activity patterns (overlap)
+
+Script: `R/04_night_activity.R`
+
+This script:
+
+- Reads independent Aotus detections with reclassified behavior from  
+  `data/processed/Aotus_Ind_Det_reclassified_02.csv`
+- Converts detection timestamps to POSIX time and circular time (radians)
+- Estimates nocturnal activity pattern using kernel density estimation on circular time with the **overlap** package
+- Exports:
+  - Dataset of Aotus independent detections with timestamps → `data/processed/Aotus_Ind_Det_timeprocessed_03.csv`
+  - `output/figures/Figure_3.png`
+- Writes session information for reproducibility to:  
+  `output/logs/sessionInfo_night_activity.txt`
+
+Run:
+
+    source("R/04_night_activity.R")
 
 ---
 
