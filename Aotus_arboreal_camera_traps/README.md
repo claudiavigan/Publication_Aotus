@@ -17,7 +17,7 @@ submitted to *Ecology & Evolution Nature Notes*.
     │   ├── 02_camera_placement.R   # Calculates cameras activity periods (Table S3, Figure S1)
     │   ├── 03_behavior.R           # Calculates behavior proportions (Table S4, Figure 2)
     │   ├── 04_night_activiy.R      # Calulates the night activity pattern of Aotus (Figure 3)
-    │   └── ...
+    │   ├── 05_annual_trends.R      # Plot annual trends of Aotus detections, infant presence, phenology and precipitation (Figure 4)
     │
     ├── data/
     │   ├── raw/                    # Raw, unchanged input data
@@ -49,7 +49,7 @@ To install required packages, run this line at the beginning of each script:
 
 ## 3. How to Reproduce the Analyses
 
-### 3.1. Clone or download the repository
+### 3.0. Clone or download the repository
 
     git clone https://github.com/<your-username>/publications.git
     cd publications/Aotus_arboreal_camera_traps
@@ -58,7 +58,7 @@ Then open **R/RStudio** and set the working directory to this folder.
 
 ---
 
-### 3.2. Script 01 — Tree distance analyses (Table S2)
+### 3.1. Script 01 — Tree distance analyses (Table S2)
 
 Script: `R/01_tree_distances.R`
 
@@ -78,7 +78,7 @@ Run:
 
 ---
 
-### 3.3. Script 02 — Camera deployment periods & CTNs (Camera Trap Nights)
+### 3.2. Script 02 — Camera deployment periods & CTNs (Camera Trap Nights)
 
 Script: `R/02_camera_placement.R`
 
@@ -102,7 +102,7 @@ Run:
 
 ---
 
-### 3.4. Script 03 — Behavior classification & proportions
+### 3.3. Script 03 — Behavior classification & proportions
 
 Script: `R/03_behavior.R`
 
@@ -128,7 +128,7 @@ Run:
 
 ---
 
-### 3.5. Script 04 — Night activity patterns (overlap)
+### 3.4. Script 04 — Night activity patterns (overlap)
 
 Script: `R/04_night_activity.R`
 
@@ -147,6 +147,53 @@ This script:
 Run:
 
     source("R/04_night_activity.R")
+
+---
+
+### 3.5. Script 05 — Annual trend: Aotus independent detections, phenology & precipitation  
+
+**Script:** `R/05_annual_trend.R`
+
+This script:
+
+- Reads:
+  - Time-processed Aotus independent detections  
+    → `data/processed/Aotus_Ind_Det_timeprocessed_03.csv`
+  - Phenology dataset (2022-2024)
+    → `data/raw/pheno.csv`
+  - Climate dataset (1998-2025)
+    → `data/raw/CLIM_98-25.csv`
+
+- Generates date-corrected versions of the phenology and climate datasets:
+  - `data/processed/Pheno_date_aug23_nov24.csv`
+  - `data/processed/Climate_date_aug23_nov24.csv`
+
+- Aggregates all datasets to **monthly time series** (August 2023 → November 2024):
+  - Monthly Aotus detections  
+  - Mean monthly intensity of flowering phases (flower buds, open flowers)  
+  - Monthly precipitation
+    
+- Saves the derived monthly datasets:
+  - `data/processed/Aotus_monthly_detections.csv`  
+  - `data/processed/Pheno_monthly_FB_OF.csv`  
+  - `data/processed/Climate_monthly_precipitation.csv`
+
+- Creates the base for **Figure 4** combining:
+  - detections,
+  - phenology intensity of flower buds and open flowers phases
+  - precipitation
+  - Period of infant presence in recordings (Jan–Apr 2024)
+
+- Exports the base for Figure 4:
+  - `output/figures/Figure_4_tripanel_annual_pattern.pdf`
+
+- Writes session information for reproducibility to:  
+  `output/logs/sessionInfo_annual_trend.txt`
+
+
+Run:
+
+    source("R/05_annual_trend.R")
 
 ---
 
@@ -169,7 +216,7 @@ Optional logs:
 - All scripts use **relative paths** for portability  
 - Raw data remain unchanged  
 - Generated files go to `data/processed/` or `output/`  
-- `sessionInfo()` recommended for version tracking  
+- `sessionInfo()` allows for version tracking  
 
 ---
 
