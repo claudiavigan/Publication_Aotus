@@ -14,20 +14,19 @@ submitted to *Ecology & Evolution Nature Notes*.
     │
     ├── R/                          # Analysis scripts (numbered)
     │   ├── 01_tree_distances.R     # Creates distance matrices (Table S2)
-    │   ├── 02_activity_patterns.R  # (add later)
-    │   ├── 03_flower_visitation.R  # (add later)
+    │   ├── 02_camera_placement.R   # Calculates cameras activity periods (Table S3, Figure S1)
+    │   ├── 03_.R                   # (add later)
     │   ├── 04_Model.R  # (add later)
     │   └── ...
     │
     ├── data/
     │   ├── raw/                    # Raw, unchanged input data
-    │   │   └── Trees_Reconyx.csv
     │   ├── processed/              # Cleaned / derived data
     │   └── metadata/               # ??? data descriptions
     │
     ├── output/
-    │   ├── tables/                 # Tables for main text + supplement
-    │   ├── figures/                # Manuscript figures
+    │   ├── tables/                 # Tables for main text + Supplementary Information
+    │   ├── figures/                # Tables for main text + Supplementary Information
     │   └── logs/                   # sessionInfo etc.
     │
     ├── scripts_to_reproduce_figures/
@@ -79,19 +78,27 @@ Run:
 
 ---
 
-### 3.3. Script 02 — Cameras dates & CTNs (Camera Trap Nights)  
+### 3.3. Script 02 — Camera deployment periods & CTNs (Camera Trap Nights)
 
 Script: `R/02_camera_placement.R`
 
 This script:
 
-
+- Reads summarised camera deployment data from  
+  `data/raw/CameraTrapDates.csv`
+- Computes:
+  - Camera Trap Nights (CTNs) for each deployment interval  
+  - Total CTNs across all cameras  
+  - Total number of active days between the first and last deployment
+- Exports:  
+  -`output/tables/Table_S3.csv`  
+  -`output/figures/Figure_S1.png`
+- Writes session information for reproducibility:  
+  `output/logs/sessionInfo_camera_placement.txt`
 
 Run:
 
-    source("R/02_camera_placement.R")
-
----
+source("R/02_camera_placement.R")
 
 ### 3.4. Script 03 — Flower visitation  
 *(Add details when ready)*
