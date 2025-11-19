@@ -205,7 +205,7 @@ Outputs created by scripts are saved in:
     ├── tables/
     └── figures/
 
-Optional logs:
+Output logs in:
 
     output/logs/
 
