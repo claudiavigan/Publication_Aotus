@@ -87,16 +87,17 @@ Run:
 
 ---
 
-### 3.3. Script 02 — Activity patterns  
-*(Add details here once the script is created)*
+### 3.3. Script 02 — Cameras dates & CTNs (Camera Trap Nights)  
 
-Suggested structure to follow:
+Script: `R/02_camera_placement.R`
 
-- Purpose of the script  
-- Input data  
-- Output files (tables/figures)  
-- Run command:  
-      source("R/02_activity_patterns.R")
+This script:
+
+
+
+Run:
+
+    source("R/02_camera_placement.R")
 
 ---
 
