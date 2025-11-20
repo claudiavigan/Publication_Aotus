@@ -18,11 +18,11 @@ submitted to *Ecology & Evolution Nature Notes*.
     │   ├── 03_behavior.R           # Calculates behavior proportions (Table S4, Figure 2)
     │   ├── 04_night_activiy.R      # Calulates the night activity pattern of Aotus (Figure 3)
     │   ├── 05_annual_trends.R      # Plot annual trends of Aotus detections, infant presence, phenology and precipitation (Figure 4)
+    │   ├── 06_model.R              # Runs the model and generates (Figures: 5 and S2 ; Tables: 3 and S5, S6, S7)
     │
     ├── data/
     │   ├── raw/                    # Raw, unchanged input data
     │   ├── processed/              # Cleaned / derived data
-    │   └── metadata/               # ??? data descriptions
     │
     ├── output/
     │   ├── tables/                 # Tables for main text + Supplementary Information
@@ -128,7 +128,7 @@ Run:
 
 ---
 
-### 3.4. Script 04 — Night activity patterns (overlap)
+### 3.4. Script 04 — Night activity patterns
 
 Script: `R/04_night_activity.R`
 
@@ -194,6 +194,54 @@ This script:
 Run:
 
     source("R/05_annual_trend.R")
+
+---
+
+### 3.6. Script 06 — Negative-Binomial GLMM: seasonal drivers of *Aotus vociferans*' detections  
+
+**Script:** `R/06_model.R`
+
+This script:
+
+- Reads:
+  - Monthly Aotus detections  
+    → `data/processed/Aotus_monthly_detections.csv`
+  - Monthly phenology (flower buds, open flowers)  
+    → `data/processed/Pheno_monthly_FB_OF.csv`
+  - Monthly precipitation  
+    → `data/processed/Climate_monthly_precipitations.csv`
+  - Tree-level independent detections  
+    → `data/processed/Aotus_Ind_Det_timeprocessed_03.csv`
+
+- Builds datasets required for modelling
+
+- Computes exploratory summaries and exports:
+  - **Table S5** — Descriptive statistics  
+    → `output/tables/Table_S5_Descriptive_statistics.csv`
+  - **Table S6** — Spearman correlations  
+    → `output/tables/Table_S6_Spearman_correlations.csv`
+
+- Fits a negative-binomial GLMM (glmmTMB):
+  - Performs AICc-based model selection (MuMIn)
+  - Identifies the best-fitting model  
+  - Exports **Table 3** (fixed-effect results)  
+    → `output/tables/Table_3_Best_NB_GLMM.csv`
+
+- Generates diagnostics:
+  - DHARMa residual **Figure S2**  
+    → `output/figures/Figure_S2_DHARMa_diagnostics.png`
+  - Collinearity & R² calculations
+
+- Produces **Figure 5**:
+  - Observed monthly detections vs. sine and cosine seasonal predictors  
+    → `output/figures/Figure_5_sin_Aot_cos.png`
+
+- Writes session information for reproducibility to:  
+  `output/logs/sessionInfo_model.txt`
+
+Run:
+
+    source("R/06_model.R")
 
 ---
 
