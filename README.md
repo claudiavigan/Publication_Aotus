@@ -1,7 +1,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXX)
 
 Citation:
-Vigan, C. (2025). Aotus_arboreal_camera_traps. Zenodo. https://doi.org/10.5281/zenodo.XXXXX
+Viganò, C. (2025). New evidence of flower feeding and reproductive timing in owl monkeys (Aotus vociferans) from arboreal camera traps. Zenodo. https://doi.org/10.5281/zenodo.XXXXX
 
 Notes:
 - Replace the placeholder DOI (10.5281/zenodo.XXXXX) with the DOI Zenodo provides after publishing the release.
