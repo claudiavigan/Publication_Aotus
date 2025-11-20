@@ -1,4 +1,4 @@
-# Aotus arboreal camera traps  
+# README - Publication Aotus
 
 This repository contains the data and code used to reproduce the analyses and figures for the manuscript:
 
