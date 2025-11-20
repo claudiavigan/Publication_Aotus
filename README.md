@@ -1,6 +1,6 @@
 # README - Publication Aotus
 
-This repository contains the data and code used to reproduce the analyses and figures for the manuscript:
+This repository contains material for the manuscript:
 
 > **Arboreal camera traps reveal new insights into flower feeding and reproductive timing in owl monkeys (*Aotus vociferans*)**
 
