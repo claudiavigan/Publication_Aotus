@@ -1,0 +1,33 @@
+Model_terms,df,logLik,AICc,DeltaAICc,weight
+FB + sinM,5,-147.4,305.62,0,0.133
+FB + PCP + sinM,6,-146.26,305.67,0.05,0.129
+PCP + sinM,5,-147.67,306.14,0.52,0.102
+sinM,4,-148.97,306.47,0.85,0.087
+cosM + sinM,5,-147.84,306.49,0.87,0.086
+cosM + PCP + sinM,6,-146.86,306.86,1.24,0.071
+FB + InfantPresent + sinM,6,-147.35,307.86,2.24,0.043
+FB + InfantPresent + PCP + sinM,7,-146.2,307.95,2.33,0.041
+cosM + FB + sinM,6,-147.4,307.96,2.34,0.041
+cosM + FB + PCP + sinM,7,-146.23,308.02,2.4,0.04
+InfantPresent + PCP + sinM,6,-147.55,308.25,2.63,0.036
+InfantPresent + sinM,5,-148.87,308.55,2.93,0.031
+cosM + InfantPresent + sinM,6,-147.83,308.81,3.19,0.027
+cosM + InfantPresent,5,-149.11,309.03,3.41,0.024
+cosM + InfantPresent + PCP + sinM,7,-146.86,309.27,3.65,0.021
+cosM + FB + InfantPresent + PCP + sinM,8,-146.04,310.11,4.49,0.014
+cosM + FB + InfantPresent + sinM,7,-147.35,310.25,4.63,0.013
+InfantPresent,4,-151.12,310.77,5.15,0.01
+cosM + FB + InfantPresent,6,-148.82,310.78,5.16,0.01
+cosM + InfantPresent + PCP,6,-149.02,311.2,5.58,0.008
+cosM + FB,5,-150.3,311.42,5.8,0.007
+FB + InfantPresent,5,-150.93,312.67,7.05,0.004
+cosM + FB + InfantPresent + PCP,7,-148.57,312.69,7.07,0.004
+InfantPresent + PCP,5,-151.04,312.9,7.28,0.003
+(Intercept-only),3,-153.38,313.08,7.46,0.003
+cosM,4,-152.45,313.44,7.82,0.003
+cosM + FB + PCP,6,-150.3,313.75,8.13,0.002
+PCP,4,-153.07,314.67,9.05,0.001
+cosM + PCP,5,-151.95,314.71,9.09,0.001
+FB,4,-153.1,314.73,9.11,0.001
+FB + InfantPresent + PCP,6,-150.9,314.95,9.33,0.001
+FB + PCP,5,-152.98,316.77,11.15,0.001
