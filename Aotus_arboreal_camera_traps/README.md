@@ -23,7 +23,6 @@ submitted to *Ecology & Evolution Nature Notes*.
     ├── data/
     │   ├── raw/                    # Raw, unchanged input data
     │   ├── processed/              # Cleaned / derived data
-    │   └── metadata/               # ??? data descriptions
     │
     ├── output/
     │   ├── tables/                 # Tables for main text + Supplementary Information
