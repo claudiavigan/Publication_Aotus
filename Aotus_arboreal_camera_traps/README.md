@@ -1,6 +1,6 @@
 # Aotus arboreal camera traps  
 
-This repository contains the data and code used to reproduce the analyses and figures for the manuscript:
+This folder contains the data and code used to reproduce the analyses and figures for the manuscript:
 
 > **Arboreal camera traps reveal new insights into flower feeding and reproductive timing in owl monkeys (*Aotus vociferans*)**
 
@@ -8,7 +8,7 @@ submitted to *Ecology & Evolution Nature Notes*.
 
 ---
 
-## 1. Repository Structure
+## 1. Folder Structure
 
     Aotus_arboreal_camera_traps/
     │
@@ -266,30 +266,3 @@ Output logs in:
 - Generated files go to `data/processed/` or `output/`  
 - `sessionInfo()` allows for version tracking  
 
----
-
-## 6. License
-
-This project is licensed under the terms described in the `LICENSE` file.
-
----
-
-## 7. Citation
-
-Citation metadata is provided in:
-
-    CITATION.cff
-
-Once published, please cite:
-
-1. The peer-reviewed article  
-2. The archived version of this repository (Zenodo DOI will be added here)
-
----
-
-## 8. Contact
-
-For questions:
-
-**Claudia Viganò**  
-<claudiaviga@me.com>
