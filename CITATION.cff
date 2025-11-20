@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this dataset or repository, please cite it as below."
+title: "Aotus_arboreal_camera_traps"
+version: "v1.0.0"
+doi: ""
+date-released: "2025-11-20"
+authors:
+  - family-names: "Vigan"
+    given-names: "Claudia"
+    name: "claudiavigan"
+    orcid: ""
+url: "https://github.com/claudiavigan/Publication_Aotus"
+license: "CC-BY-4.0"
