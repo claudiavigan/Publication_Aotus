@@ -1,12 +1,20 @@
+# Aotus arboreal camera traps  
+
+This repository contains the data and code used to reproduce the analyses and figures for the manuscript:
+
+> **Arboreal camera traps reveal new insights into flower feeding and reproductive timing in owl monkeys (*Aotus vociferans*)**
+
+submitted to *Ecology & Evolution Nature Notes*.
+
 ---
 
-## 6. License
+## License
 
 This project is licensed under the terms described in the `LICENSE` file.
 
 ---
 
-## 7. Citation
+## Citation
 
 Citation metadata is provided in:
 
@@ -19,7 +27,7 @@ Once published, please cite:
 
 ---
 
-## 8. Contact
+## Contact
 
 For questions:
 
