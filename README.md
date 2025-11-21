@@ -1,4 +1,4 @@
-DOI: 10.5281/zenodo.17669414
+[![DOI](https://zenodo.org/badge/1072125404.svg)](https://doi.org/10.5281/zenodo.17669413)
 
 Citation:
 Viganò, C. et al. (2025). New evidence of flower feeding and reproductive timing in owl monkeys (Aotus vociferans) from arboreal camera traps. Zenodo. https://doi.org/10.5281/zenodo.XXXXX
