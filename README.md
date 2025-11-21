@@ -6,10 +6,11 @@ This folder contains the data and code used to reproduce the analyses and figure
 
 submitted to *Ecology & Evolution Nature Notes*.
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXX)
+[![DOI](https://zenodo.org/badge/1072125404.svg)](https://doi.org/10.5281/zenodo.17669413)
 
 Citation:
-Viganò, C. (2025). New evidence of flower feeding and reproductive timing in owl monkeys (Aotus vociferans) from arboreal camera traps. Zenodo. https://doi.org/10.5281/zenodo.XXXXX
+Viganò, C. (2025). New evidence of flower feeding and reproductive timing in owl monkeys (Aotus vociferans) from arboreal camera traps. Zenodo. <a href="https://doi.org/10.5281/zenodo.17669413"><img src="https://zenodo.org/badge/1072125404.svg" alt="DOI"></a>
+
 
 ---
 
