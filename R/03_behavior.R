@@ -5,7 +5,7 @@
 #   - Clean independent detections (Aotus) → useful columns & unified behaviors
 #   - Reclassify behaviors and flag infant presence
 #   - Create behavior summary table for Supplementary Table S4
-#   - Create behavior proportion figure (Figure 2)
+#   - Create behavior proportion figure (Figure 3)
 #
 # How to run:
 #   - Set working directory to the project root
@@ -152,7 +152,7 @@ Behavior_graph_AOT <- ggplot(cat_plot, aes(x = Category, y = Percent, fill = Cat
 print(Behavior_graph_AOT)
 
 ggsave(
-  filename = file.path(figures_dir, "Figure_2.pdf"),
+  filename = file.path(figures_dir, "Figure_3.pdf"),
   plot     = Behavior_graph_AOT,
   device   = pdf,
   width    = 168,

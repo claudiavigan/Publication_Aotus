@@ -21,9 +21,9 @@ Viganò, C. (2025). New evidence of flower feeding and reproductive timing in ow
     ├── R/                          # Analysis scripts (numbered)
     │   ├── 01_tree_distances.R     # Creates distance matrices (Table S2)
     │   ├── 02_camera_placement.R   # Calculates cameras activity periods (Table S3, Figure S1)
-    │   ├── 03_behavior.R           # Calculates behavior proportions (Table S4, Figure 2)
-    │   ├── 04_night_activiy.R      # Calulates the night activity pattern of Aotus (Figure 3)
-    │   ├── 05_annual_trends.R      # Plot annual trends of Aotus detections, infant presence, phenology and precipitation (Figure 4)
+    │   ├── 03_behavior.R           # Calculates behavior proportions (Table S4, Figure 3)
+    │   ├── 04_night_activiy.R      # Calulates the night activity pattern of Aotus (Figure 4)
+    │   ├── 05_annual_trends.R      # Plot annual trends of Aotus detections, infant presence, phenology and precipitation (Figure 2)
     │   ├── 06_model.R              # Runs the model and generates (Figures: 5 and S2 ; Tables: 3 and S5, S6, S7)
     │
     ├── data/
@@ -124,7 +124,7 @@ This script:
 - Exports:
   - Dataset of Aotus independent detections with reclassified behaviors  → `data/processed/Ind_Det_Aotus_reclassified_02.csv`
   - `output/tables/Table_S4.xlsx`
-  - `output/figures/Figure_2.pdf`
+  - `output/figures/Figure_3.pdf`
 - Writes session information for reproducibility to:  
   `output/logs/sessionInfo_behavior.txt`
 
@@ -146,7 +146,7 @@ This script:
 - Estimates nocturnal activity pattern using kernel density estimation on circular time with the **overlap** package
 - Exports:
   - Dataset of Aotus independent detections with timestamps → `data/processed/Aotus_Ind_Det_timeprocessed_03.csv`
-  - `output/figures/Figure_3.png`
+  - `output/figures/Figure_4.png`
 - Writes session information for reproducibility to:  
   `output/logs/sessionInfo_night_activity.txt`
 
@@ -191,7 +191,7 @@ This script:
   - Period of infant presence in recordings (Jan–Apr 2024)
 
 - Exports the base for Figure 4:
-  - `output/figures/Figure_4_tripanel_annual_pattern.pdf`
+  - `output/figures/Figure_2_tripanel_annual_pattern.pdf`
 
 - Writes session information for reproducibility to:  
   `output/logs/sessionInfo_annual_trend.txt`
