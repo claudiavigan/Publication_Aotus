@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this dataset or repository, please cite it as below."
-title: "New evidence of flower feeding and reproductive timing in owl monkeys (Aotus vociferans) from arboreal camera traps"
+title: "Flower feeding and reproductive timing in Spix’s Night Monkey (*Aotus vociferans*): evidence from arboreal camera traps"
 version: "v1.0.0"
-doi: "10.5281/zenodo.17669414"
-date-released: "2025-11-20"
+doi: "110.5281/zenodo.17865847"
+date-released: "2025-12-09"
 authors:
   - family-names: "Viganò"
     given-names: "Claudia"
