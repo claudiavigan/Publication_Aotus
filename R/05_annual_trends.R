@@ -5,7 +5,7 @@
 #   - Read Aotus independent detections timeprocessed, phenology, and climate data
 #   - Aggregate to monthly time series
 #   - Plot annual trends of Aotus independent detections, phenology, and precipitation
-#   - Save derived datasets generates the base for figure 4
+#   - Save derived datasets generates the base for figure 2
 #
 # How to run:
 #   - Set working directory to the project root:
