@@ -19,7 +19,7 @@ Viganò, C. (2025). Flower feeding and reproductive timing in Spix’s Night Mon
     Aotus_arboreal_camera_traps/
     │
     ├── R/                          # Analysis scripts (numbered)
-    │   ├── 01_tree_distances.R     # Creates distance matrices (Table S2)
+    │   ├── 01_tree_distances_MCP.R # Creates distance matrices (Table S2) and calculates Minimum Convex Polygon (MCP)
     │   ├── 02_camera_placement.R   # Calculates cameras activity periods (Table S3, Figure S1)
     │   ├── 03_behavior.R           # Calculates behavior proportions (Table S4, Figure 3)
     │   ├── 04_night_activiy.R      # Calulates the night activity pattern of Aotus (Figure 4)
@@ -64,14 +64,15 @@ Then open **R/RStudio** and set the working directory to this folder.
 
 ---
 
-### 3.1. Script 01 — Tree distance analyses (Table S2)
+### 3.1. Script 01 — Tree distance and study area analyses (Table S2)
 
-Script: `R/01_tree_distances.R`
+Script: `R/01_tree_distances_MCP.R`
 
 This script:
 
 - Reads tree coordinates from `data/raw/Trees_Reconyx.csv`
 - Calculates all pairwise distances (Haversine)
+- Calculates the Minimum Convex Polygon (MCP) defined by the trees 
 - Exports:
     - `data/processed/Trees_distance_matrix_long.csv`
     - `output/tables/Table_S2_tree_distances.csv`
@@ -80,7 +81,7 @@ This script:
 
 Run:
 
-    source("R/01_tree_distances.R")
+    source("R/01_tree_distances_MCP.R")
 
 ---
 
