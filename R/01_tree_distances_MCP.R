@@ -2,7 +2,8 @@
 #  01_tree_distances.R
 # ----------------------------------------------------------------------------
 # Purpose:
-#   - Compute pairwise distances among Handroanthus trees
+#   - Compute pairwise distances among Handroanthus trees and the
+#     Minimum Convex Polygon (MCP) defined by the trees 
 #   - Export:
 #       (1) Long-format distance matrix (all pairs)
 #           -> output/tables/Trees_distance_matrix_long.csv
@@ -23,7 +24,7 @@
 # ============================================================================
 
 # 0. Packages ----------------------------------------------------------------
-required_pkgs <- c("geosphere", "sf")
+required_pkgs <- c("geosphere", "sf", "dplyr")
 
 for (pkg in required_pkgs) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
@@ -32,6 +33,7 @@ for (pkg in required_pkgs) {
 }
 library(geosphere)
 library(sf)
+library(dplyr)
 
 # 1. Paths -------------------------------------------------------------------
 # All paths are relative to the project root
@@ -143,7 +145,34 @@ write.csv(
   row.names = FALSE
 )
 
-# 6. Record session info for reproducibility ----------------------
+# 6. Minimum Convex Polygon (MCP) ----------
+# The MCP (convex hull) is computed from the camera-monitored trees and used to
+# report the spatial extent of the focal sampling locations.
+
+# ---- Create simple-feature points in WGS84 ----
+# Let's R understand that the numbers are actually spatially located points 
+# Converting a normal dataframe into a spatial point object
+pts_wgs84 <- st_as_sf(trees, coords = c("Longitude", "Latitude"), crs = 4326)
+
+# ---- Project to a metric CRS (Coordinate Reference System) for accurate area ----
+# The site is around lon -79, lat -4 => UTM Zone 17S (WGS84) is appropriate
+pts_utm <- st_transform(pts_wgs84, 32717)  # EPSG:32717 = WGS84 / UTM 17S
+
+# ---- Compute MCP / convex hull ----
+hull <- pts_utm %>%
+  summarise(geometry = st_convex_hull(st_union(geometry))) %>%
+  mutate(
+    area_m2 = as.numeric(st_area(geometry)),
+    area_ha = area_m2 / 10000
+  )
+
+# ---- Print results ----
+print(hull %>% st_drop_geometry() %>% mutate(
+  area_m2 = round(area_m2, 1),
+  area_ha = round(area_ha, 3)
+))
+
+# 7. Record session info for reproducibility ----------------------
 #Uncomment if you want the log written to output/logs/
 # sink(file.path(logs_dir, "sessionInfo_tree_distances.txt"))
 # sessionInfo()
