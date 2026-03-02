@@ -19,7 +19,7 @@ Viganò, C. (2025). Flower feeding and reproductive timing in Spix’s Night Mon
     Aotus_arboreal_camera_traps/
     │
     ├── R/                          # Analysis scripts (numbered)
-    │   ├── 01_tree_distances_MCP.R     # Creates distance matrices (Table S2) and calculates Minimum Convex Polygon (MCP)
+    │   ├── 01_tree_distances_MCP.R # Creates distance matrices (Table S2) and calculates Minimum Convex Polygon (MCP)
     │   ├── 02_camera_placement.R   # Calculates cameras activity periods (Table S3, Figure S1)
     │   ├── 03_behavior.R           # Calculates behavior proportions (Table S4, Figure 3)
     │   ├── 04_night_activiy.R      # Calulates the night activity pattern of Aotus (Figure 4)
