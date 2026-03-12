@@ -1,6 +1,5 @@
 Variable,Mean,Median,SD,Min,Max
-Aotus detections (count),12.19,13,6.61,3,22
-Flower buds (category),1.33,0.52,1.51,0,3.67
-Infant presence (code=1),0.25,0,0.45,0,1
-Open flowers (category),0.5,0.18,0.9,0,3.28
-Precipitation (mm),119.29,117.15,35.63,55.1,162.9
+Aotus detections (count/month),12.19,13,6.61,3,22
+Flower buds (mean class/month),1.42,0.25,1.73,0,4
+Open flowers (mean class/month),0.56,0,1.07,0,3.43
+Precipitation (mm/month),119.29,117.15,35.63,55.1,162.9

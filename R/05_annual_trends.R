@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------
 # Purpose:
 #   - Read Aotus independent detections timeprocessed, phenology, and climate data
-#   - Aggregate to monthly time series
+#   - Aggregate to monthly time series and phenology to tree x month time series
 #   - Plot annual trends of Aotus independent detections, phenology, and precipitation
 #   - Save derived datasets generates the base for figure 2
 #
@@ -64,13 +64,13 @@ to   <- ymd("2024-11-30")
 
 # --- phenology: YY/MM/DD in separate columns --------------------------------
 pheno_date <- pheno %>%
-  mutate(date = make_date(YY, MM, DD)) %>%      # build Date
-  filter(date >= from, date <= to)
+  mutate(date = make_date(YY, MM, DD)) %>%
+  filter((date >= from & date <= to) | date == as.Date("2023-07-30")) # For later adjustment of H11 inclusion for the month of August
 
 # Save phenology with new date column
 write_csv(
   pheno_date,
-  file.path(processed_dir, "Pheno_date_aug23_nov24.csv")
+  file.path(processed_dir, "Pheno_date_jul23_nov24.csv")
 )
 
 # --- climate: timestamp "YYYY-mm-dd HH:MM:SS" --------------------------------
@@ -98,16 +98,48 @@ det_mo <- aot %>%
   mutate(month = floor_date(date, "month")) %>%
   count(month, name = "detections")
 
-# 5.2 Monthly phenology (mean index per month)
-#     FB = Flower buds, OF = Open flowers
+# 5.2a Monthly phenology (mean index per month)
+#      FB = Flower buds, OF = Open flowers
+monitored_trees <- sort(unique(aot$TreeID))
+
 ph_mo <- pheno_date %>%
-  filter(date >= from, date <= to) %>%
+  filter(date >= from, date <= to, ID %in% monitored_trees) %>%
   mutate(month = floor_date(date, "month")) %>%
   summarise(
     flower_buds  = mean(FB, na.rm = TRUE),
     open_flowers = mean(OF, na.rm = TRUE),
     .by = month
   )
+
+# 5.2b Tree × month phenology (mean class per tree per month)
+#      FB = Flower buds, OF = Open flowers
+from2 <- ymd("2023-07-30")
+
+ph_tm <- pheno_date %>%
+  filter(
+    date >= from2,
+    date <= to | date == as.Date("2023-07-30"),  # keep the July record to later include H11
+    ID %in% monitored_trees
+  ) %>%
+  mutate(
+    month = floor_date(date, "month"),
+    
+    # move the specific survey of H11 from 30 July to August
+    month = if_else(
+      ID == "H11" & date == as.Date("2023-07-30"),
+      as.Date("2023-08-01"),
+      month
+    )
+  ) %>%
+  summarise(
+    flower_buds  = mean(FB, na.rm = TRUE),
+    open_flowers = mean(OF, na.rm = TRUE),
+    n_surveys    = dplyr::n(),
+    .by = c(ID, month)
+  ) %>%
+  rename(TreeID = ID)
+
+str(ph_tm)
 
 # 5.3 Monthly precipitation (sum of interval PCP)
 prcp_mo <- clim_date %>%
@@ -122,6 +154,7 @@ prcp_mo <- clim_date %>%
 write_csv(det_mo, file.path(processed_dir, "Aotus_monthly_detections.csv"))
 write_csv(ph_mo,  file.path(processed_dir, "Pheno_monthly_FB_OF.csv"))
 write_csv(prcp_mo,file.path(processed_dir, "Climate_monthly_precipitation.csv"))
+write_csv(ph_tm, file.path(processed_dir, "Pheno_tm_FB_OF.csv"))
 
 # 6. Plot settings -----------------------------------------------------------
 band_df <- tibble::tibble(
@@ -236,7 +269,7 @@ fig_tripanel <- (p1 / p2 / p3) +
 
 # 9. Save figures ------------------------------------------------------------ 
 ggsave(
-  filename = file.path(figures_dir, "Figure_4.pdf"),
+  filename = file.path(figures_dir, "Figure_2.pdf"),
   plot     = fig_tripanel,
   width    = 168,
   height   = 210,

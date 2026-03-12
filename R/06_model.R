@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------------
 # Purpose:
 #   - Read monthly Aotus detections, phenology, and precipitation (from 05_annual_trend)
-#   - Build a monthly summary table with circular month terms and infant period
+#   - Build a monthly summary table with circular month terms 
 #   - Construct TreeID × Month dataset for NB-GLMM
 #   - Fit NB-GLMM with AICc model selection (glmmTMB + MuMIn)
 #   - Run diagnostics (DHARMa, collinearity, R²)
@@ -75,6 +75,7 @@ file_aot      <- file.path(processed_dir, "Aotus_Ind_Det_timeprocessed_03.csv")
 file_det_mo   <- file.path(processed_dir, "Aotus_monthly_detections.csv")
 file_ph_mo    <- file.path(processed_dir, "Pheno_monthly_FB_OF.csv")
 file_prcp_mo  <- file.path(processed_dir, "Climate_monthly_precipitation.csv")
+file_ph_tm    <- file.path(processed_dir, "Pheno_tm_FB_OF.csv")
 
 # 2. Load csvs ---------------------------------------------------------------
 
@@ -92,12 +93,19 @@ det_mo <- read.csv(
 )
 str(det_mo)
 
-# c) Phenology MONTHLY -------------------------------------------------------
+# c1) Phenology MONTHLY -------------------------------------------------------
 ph_mo <- read.csv(
   file_ph_mo,
   stringsAsFactors = FALSE
 )
 str(ph_mo)
+
+# c2) Phenology TREE X MONTH -------------------------------------------------------
+ph_tm <- read.csv(
+  file_ph_tm,
+  stringsAsFactors = FALSE
+)
+str(ph_tm)
 
 # d) Climate MONTHLY ---------------------------------------------------------
 prcp_mo <- read.csv(
@@ -110,51 +118,33 @@ str(prcp_mo)
 str(aot)
 str(det_mo)
 str(ph_mo)
+str(ph_tm)
 str(prcp_mo)
 
-# 3. Build monthly summary dataframe -------------------------------------------
+# 3. Build monthly descriptive dataset  -------------------------------------------
 # Make sure 'month' is in Date format
 det_mo  <- det_mo  %>% mutate(month = as.Date(month))
 ph_mo   <- ph_mo   %>% mutate(month = as.Date(month))
 prcp_mo <- prcp_mo %>% mutate(month = as.Date(month))
+ph_tm   <- ph_tm   %>% mutate(month = as.Date(month))
 
 # Merge monthly series
-summary_df <- det_mo %>%
+monthly_df <- det_mo %>%
+  full_join(ph_mo, by = "month") %>%
   full_join(prcp_mo, by = "month") %>%
-  full_join(ph_mo,  by = "month") %>%
   arrange(month) %>%
-  mutate(
-    Month    = month,             # rename for clarity
-    MonthNum = month(Month),      # numeric month 1–12
-    sinM     = sin(2 * pi * MonthNum / 12),
-    cosM     = cos(2 * pi * MonthNum / 12),
-    # Binary infant presence (Jan–Apr 2024 = 1, otherwise 0)
-    InfantPresent = if_else(
-      Month >= as.Date("2024-01-01") & Month <= as.Date("2024-04-30"),
-      1L, 0L
-    ),
-    # Rename to match model variable names
-    DetectionEvents = detections,
-    PCP             = precip_mm,
-    FB              = flower_buds
+  rename(
+    Count = detections,
+    FB    = flower_buds,
+    OF    = open_flowers,
+    PCP   = precip_mm
   )
 
-print(summary_df)
+str(monthly_df)
+summary(monthly_df)
 
-# Make it start in August (beginning of cameras recording period)
-summary_df_clean <- summary_df %>%
-  filter(Month >= as.Date("2023-08-01")) %>%
-  mutate(OF = open_flowers)
-
-print(summary_df_clean)
-
-# Save cleaned monthly summary
-write_csv(
-  summary_df_clean,
-  file.path(processed_dir, "Model_summary_df_Aug_23.csv")
-)
-
-# 4. Build TreeID × Month dataset for NB-GLMM -------------------------------
+# # 4. Build TreeID × Month dataset for NB-GLMM -------------------------------
+# Aotus detections: build tree × month counts from the event-level dataset
 aot_tm <- aot %>%
   mutate(
     DateTime = ymd_hms(DateTime),
@@ -165,37 +155,54 @@ aot_tm <- aot %>%
     Date >= as.Date("2023-08-01"),
     Date <= as.Date("2024-11-30")
   ) %>%
-  count(TreeID, Month, name = "Count") %>%
-  # Fill in all TreeID × Month combinations (zeros where no detections)
+  count(TreeID, Month, name = "Count")
+
+# Complete all tree × month combinations (zeros where no detections)
+all_months <- seq(as.Date("2023-08-01"), as.Date("2024-11-01"), by = "1 month")
+all_trees  <- sort(unique(aot$TreeID))
+
+aot_tm <- aot_tm %>%
   complete(
-    TreeID,
-    Month = summary_df$Month,
-    fill = list(Count = 0)
-  ) %>%
-  # Join monthly covariates
-  left_join(
-    summary_df %>%
-      select(Month, sinM, cosM, PCP, FB, InfantPresent),
-    by = "Month"
+    TreeID = all_trees,
+    Month  = all_months,
+    fill   = list(Count = 0)
   )
 
-str(aot_tm)
+# Join tree × month phenology and monthly precipitation
+model_df <- aot_tm %>%
+  left_join(
+    ph_tm %>%
+      select(TreeID, month, FB = flower_buds, OF = open_flowers, n_surveys),
+    by = c("TreeID", "Month" = "month")
+  ) %>%
+  left_join(
+    prcp_mo %>%
+      rename(Month = month, PCP = precip_mm),
+    by = "Month"
+  ) %>%
+  mutate(
+    MonthNum = month(Month),
+    sinM     = sin(2 * pi * MonthNum / 12),
+    cosM     = cos(2 * pi * MonthNum / 12)
+  ) %>%
+  arrange(TreeID, Month)
+
+str(model_df)
+summary(model_df)
+print(model_df, n = 20)
 
 # =============================================================================
-# 5. Exploratory Descriptive Statistics  & Spearman correlations 
+# 5. Exploratory Descriptive Statistics, Spearman correlations & VIF
 # =============================================================================
-
-summary_df_clean <- summary_df_clean %>%
-  filter(Month >= as.Date("2023-08-01"))
 
 # ---- Descriptive statistics (ECOLOGICAL VARIABLES ONLY) ----
-vars_desc <- c("DetectionEvents", "PCP", "FB", "OF", "InfantPresent")
+vars_desc <- c("Count", "FB", "OF", "PCP")
 
-desc_stats <- summary_df_clean %>%
+desc_stats <- monthly_df %>%
   select(all_of(vars_desc)) %>%
   pivot_longer(everything(), names_to = "Variable", values_to = "Value") %>%
   group_by(Variable) %>%
-  summarize(
+  dplyr::summarize(
     Mean   = round(mean(Value, na.rm = TRUE), 2),
     Median = round(median(Value, na.rm = TRUE), 2),
     SD     = round(sd(Value, na.rm = TRUE), 2),
@@ -206,13 +213,14 @@ desc_stats <- summary_df_clean %>%
   mutate(
     Variable = dplyr::recode(
       Variable,
-      "DetectionEvents" = "Aotus detections (count)",
-      "PCP"             = "Precipitation (mm)",
-      "FB"              = "Flower buds (category)",
-      "OF"              = "Open flowers (category)",
-      "InfantPresent"   = "Infant presence (code=1)"
+      Count = "Aotus detections (count/month)",
+      FB    = "Flower buds (mean class/month)",
+      OF    = "Open flowers (mean class/month)",
+      PCP   = "Precipitation (mm/month)"
     )
   )
+
+desc_stats
 
 # ---- Save Table S5 ----
 write_csv(
@@ -226,30 +234,29 @@ kable(
 )
 
 # ---- Spearman correlations (NO OF here: just covariates for model included) --
-vars_cor <- c("DetectionEvents", "PCP", "FB", "InfantPresent", "sinM", "cosM")
+vars_cor <- c("FB", "PCP", "sinM", "cosM")
 
-cors <- cor(
-  summary_df_clean[vars_cor],
-  method = "spearman",
-  use    = "pairwise.complete.obs"
-)
-cors_round <- round(cors, 2)
+cor_res <- Hmisc::rcorr(as.matrix(model_df[vars_cor]), type = "spearman")
 
-cors_long <- reshape2::melt(
-  cors_round,
-  varnames   = c("Variable1", "Variable2"),
+rho <- cor_res$r
+
+rho_long <- reshape2::melt(
+  rho,
+  varnames = c("Variable1", "Variable2"),
   value.name = "Spearman_rho"
-) %>%
-  filter(Variable1 != Variable2) %>%
-  filter(!duplicated(t(apply(., 1, sort)))) %>%
-  arrange(desc(abs(Spearman_rho)))
+)
 
-print(cors_long)
+spearman_table <- rho_long %>%
+  filter(Variable1 != Variable2) %>%
+  filter(!duplicated(t(apply(.[, c("Variable1", "Variable2")], 1, sort)))) %>%
+  arrange(desc(abs(Spearman_rho))) %>%
+  mutate(
+    Spearman_rho = round(Spearman_rho, 2)
+  )
+
+spearman_table
 
 # ---- Spearman correlation Table S6 ----
-spearman_table <- cors_long %>%
-  select(Variable1, Variable2, Spearman_rho)
-
 write_csv(
   spearman_table,
   file.path(tables_dir, "Table_S6_Spearman_correlations.csv")
@@ -259,6 +266,14 @@ kable(
   spearman_table,
   caption = "Table S6. Spearman’s rank correlation coefficients (ρ) among covariates used in NB-GLMMs."
 )
+
+# ---- VIF (NO OF here: just covariates for model included) --
+library(car)
+
+vif_model <- lm(Count ~ FB + PCP + sinM + cosM, data = model_df)
+vif_values <- car::vif(vif_model)
+
+vif_values
 
 # =============================================================================
 # 6. Tree × Month NB-GLMM with AICc model selection
