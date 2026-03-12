@@ -172,26 +172,29 @@ This script:
     → `data/raw/CLIM_98-25.csv`
 
 - Generates date-corrected versions of the phenology and climate datasets:
-  - `data/processed/Pheno_date_aug23_nov24.csv`
+  - `data/processed/Pheno_date_jul23_nov24.csv`
   - `data/processed/Climate_date_aug23_nov24.csv`
 
 - Aggregates all datasets to **monthly time series** (August 2023 → November 2024):
   - Monthly Aotus detections  
   - Mean monthly intensity of flowering phases (flower buds, open flowers)  
   - Monthly precipitation
+ 
+- Aggregates phenology dataset to **tree x month time series** (August 2023 → November 2024):
     
 - Saves the derived monthly datasets:
   - `data/processed/Aotus_monthly_detections.csv`  
   - `data/processed/Pheno_monthly_FB_OF.csv`  
   - `data/processed/Climate_monthly_precipitation.csv`
+  - `data/processed/Pheno_tm_FB_OF.csv` 
 
-- Creates the base for **Figure 4** combining:
+- Creates the base for **Figure 2** combining:
   - detections,
   - phenology intensity of flower buds and open flowers phases
   - precipitation
   - Period of infant presence in recordings (Jan–Apr 2024)
 
-- Exports the base for Figure 4:
+- Exports the base for Figure 2:
   - `output/figures/Figure_2_tripanel_annual_pattern.pdf`
 
 - Writes session information for reproducibility to:  
@@ -215,6 +218,8 @@ This script:
     → `data/processed/Aotus_monthly_detections.csv`
   - Monthly phenology (flower buds, open flowers)  
     → `data/processed/Pheno_monthly_FB_OF.csv`
+  - Tree x Month phenology (flower buds, open flowers)  
+    → `data/processed/Pheno_tm_FB_OF.csv`
   - Monthly precipitation  
     → `data/processed/Climate_monthly_precipitations.csv`
   - Tree-level independent detections  
@@ -227,6 +232,7 @@ This script:
     → `output/tables/Table_S5_Descriptive_statistics.csv`
   - **Table S6** — Spearman correlations  
     → `output/tables/Table_S6_Spearman_correlations.csv`
+  - Variance Inflation Factors (VIF)  
 
 - Fits a negative-binomial GLMM (glmmTMB):
   - Performs AICc-based model selection (MuMIn)
