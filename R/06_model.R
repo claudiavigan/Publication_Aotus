@@ -32,7 +32,8 @@ required_pkgs <- c(
   "dplyr", "lubridate", "readr", "tidyr",
   "glmmTMB", "DHARMa", "MuMIn", "performance",
   "broom", "broom.mixed", "reshape2",
-  "ggplot2", "writexl", "knitr"
+  "ggplot2", "writexl", "knitr",
+  "Hmisc", "car", "scales"
 )
 
 for (pkg in required_pkgs) {
@@ -172,7 +173,7 @@ aot_tm <- aot_tm %>%
 model_df <- aot_tm %>%
   left_join(
     ph_tm %>%
-      select(TreeID, month, FB = flower_buds, OF = open_flowers, n_surveys),
+      select(TreeID, month, FB = flower_buds, OF = open_flowers),
     by = c("TreeID", "Month" = "month")
   ) %>%
   left_join(
@@ -276,16 +277,23 @@ vif_values <- car::vif(vif_model)
 vif_values
 
 # =============================================================================
-# 6. Tree × Month NB-GLMM with AICc model selection
+# 6. Tree × Month NB-GLMM with AICc model selection & Model Averaging
 # =============================================================================
+str(model_df)
 
-aot_tm_clean <- aot_tm %>%
-  select(Count, sinM, cosM, PCP, FB, InfantPresent, TreeID) %>%
-  tidyr::drop_na()
+# ---- Keep only variables needed for modelling  ----
+aot_tm_clean <- model_df %>%
+  select(TreeID, Month, Count, FB, PCP, sinM, cosM) 
+
+sum(is.na(aot_tm_clean))
+stopifnot(sum(is.na(aot_tm_clean)) == 0)
+
+str(aot_tm_clean)
+head(aot_tm_clean)
 
 # ---- Overdispersion check: variance / mean  ----
-mean_count <- mean(aot_tm_clean$Count)
-var_count  <- var(aot_tm_clean$Count)
+mean_count <- mean(aot_tm_clean$Count, na.rm = TRUE)
+var_count  <- var(aot_tm_clean$Count, na.rm = TRUE)
 disp_ratio <- var_count / mean_count
 
 cat("Mean Count:", round(mean_count, 2), "\n")
@@ -294,30 +302,114 @@ cat("Variance/Mean ratio:", round(disp_ratio, 2), "\n")
 
 # Global model
 global_nb <- glmmTMB(
-  Count ~ sinM + cosM + PCP + FB + InfantPresent + (1 | TreeID),
+  Count ~ FB + PCP + sinM + cosM + (1 | TreeID),
   family  = nbinom2,
   data    = aot_tm_clean,
   control = glmmTMBControl(optCtrl = list(iter.max = 1e5, eval.max = 1e5))
 )
 
-# Model selection
+summary(global_nb)
+
+# Model selection with AICc & Top Models
+options(na.action = "na.fail")
+
 dredge_nb <- MuMIn::dredge(global_nb, rank = "AICc")
-print(head(dredge_nb, 10))
+print(dredge_nb)
+
+# 10 best Models
+top_nb <- as.data.frame(dredge_nb) %>%
+  arrange(AICc)
+
+head(top_nb, 10)
 
 # Best model (lowest AICc)
-best_nb <- MuMIn::get.models(dredge_nb, 1)[[1]]
+best_nb <- MuMIn::get.models(dredge_nb, subset = 1)[[1]]
 summary(best_nb)
+
+# ---- Confidence set: models within delta AICc <= 2 ----
+conf_set <- MuMIn::get.models(dredge_nb, subset = delta <= 2)
+
+length(conf_set)
+
+# ---- Model averaging across the confidence set ----
+avg_nb <- MuMIn::model.avg(conf_set)
+
+summary(avg_nb)
+
+# ---- Table 3: Model-averaged coefficients ----
+avg_coef <- summary(avg_nb)$coefmat.full
+
+table_3 <- as.data.frame(avg_coef) %>%
+  tibble::rownames_to_column("Predictor") %>%
+  
+  # Clean predictor names
+  mutate(
+    Predictor = dplyr::recode(
+      Predictor,
+      "cond((Int))" = "Intercept",
+      "cond(PCP)"   = "PCP",
+      "cond(sinM)"  = "sinM",
+      "cond(FB)"    = "FB",
+      "cond(cosM)"  = "cosM"
+    )
+  ) %>%
+  
+  # Force logical order
+  mutate(
+    Predictor = factor(
+      Predictor,
+      levels = c("Intercept", "FB", "PCP", "sinM", "cosM")
+    )
+  ) %>%
+  
+  # Compute rate ratios and CI
+  mutate(
+    Rate_ratio = exp(Estimate),
+    CI_low  = exp(Estimate - 1.96 * `Adjusted SE`),
+    CI_high = exp(Estimate + 1.96 * `Adjusted SE`)
+  ) %>%
+  
+  # Format values
+  mutate(
+    Estimate = round(Estimate, 3),
+    SE       = round(`Adjusted SE`, 3),
+    p        = ifelse(`Pr(>|z|)` < 0.001, "<0.001", sprintf("%.3f", `Pr(>|z|)`)),
+    Rate_ratio = round(Rate_ratio, 3),
+    CI_low  = round(CI_low, 3),
+    CI_high = round(CI_high, 3)
+  ) %>%
+  
+  select(
+    Predictor,
+    Estimate,
+    SE,
+    p,
+    Rate_ratio,
+    CI_low,
+    CI_high
+  ) %>%
+  
+  arrange(Predictor)
+
+table_3
+
+write_csv(
+  table_3,
+  file.path(tables_dir, "Table_3_Model_averaged_coefficients.csv")
+)
 
 # =============================================================================
 # 7. Diagnostics & validation
 # =============================================================================
 
-sim_nb <- simulateResiduals(best_nb, n = 1000)
+sim_nb <- DHARMa::simulateResiduals(best_nb, n = 1000)
 
 # ---- DHARMa plots on screen ----
 plot(sim_nb)
-testDispersion(sim_nb)
-testZeroInflation(sim_nb)
+
+DHARMa::testDispersion(sim_nb)
+DHARMa::testZeroInflation(sim_nb)
+DHARMa::testUniformity(sim_nb)
 
 # ---- Save DHARMa diagnostic Figure S2 ----
 png(
@@ -334,16 +426,11 @@ plot(sim_nb)
 
 dev.off()
 
-# Collinearity from the global model
-check_collinearity(global_nb)
-
-# R² for best model
-r2(best_nb)
-
 # =============================================================================
-# 8. Effect sizes & predictor significance
+# 8. Tables
 # =============================================================================
 
+# ---- Best-model coefficient table ----
 fixef_nb <- broom.mixed::tidy(
   best_nb,
   effects     = "fixed",
@@ -361,55 +448,18 @@ fixef_nb <- broom.mixed::tidy(
     RateRatio, CI_low, CI_high
   )
 
-print(fixef_nb)
+fixef_nb
 
-# Likelihood-ratio tests
-lrt_nb <- drop1(best_nb, test = "Chisq")
-print(lrt_nb)
-
-# ---- Best-model table (Table 3) ----
-table_best <- fixef_nb %>%
-  mutate(
-    Term = dplyr::recode(
-      term,
-      "(Intercept)" = "(Intercept)",
-      "FB"          = "FB",
-      "sinM"        = "sinM"
-    ),
-    RR      = round(RateRatio, 2),
-    CI_low  = round(CI_low, 2),
-    CI_high = round(CI_high, 2),
-    # NEW: nice p-value formatting (no scientific notation)
-    p_value = ifelse(
-      p.value < 0.001,
-      "< 0.001",
-      format(round(p.value, 3), nsmall = 3)
-    )
-  ) %>%
-  select(Term, RR, CI_low, CI_high, p_value)
-
-write_csv(
-  table_best,
-  file.path(tables_dir, "Table_3_Best_NB_GLMM.csv")
-)
-
-kable(
-  table_best,
-  caption = "Table 3. Fixed-effect estimates of the most parsimonious NB-GLMM predicting monthly Aotus vociferans independent detections. Results are expressed as rate ratios (RR) with 95% Wald confidence intervals and associated p-values."
-)
-
-# ---- Save all key tables to one Excel workbook ----
+# ---- AICc model-selection table ----
 model_selection_df <- as.data.frame(dredge_nb)
 
-# ---- Table S7: clean AICc model-selection table ----
 extract_terms <- function(df_row) {
   nm <- names(df_row)
-  # Coefficient columns for the conditional model (exclude intercept)
   term_cols <- nm[grepl("^cond\\(", nm) & nm != "cond((Int))"]
   included  <- term_cols[!is.na(df_row[term_cols])]
   if (length(included) == 0) return("(Intercept-only)")
   clean <- gsub("^cond\\(|\\)$", "", included)
-  clean <- sort(clean)  # keep a consistent order
+  clean <- sort(clean)
   paste(clean, collapse = " + ")
 }
 
@@ -429,45 +479,26 @@ table_s7 <- model_selection_df %>%
   select(Model_terms, df, logLik, AICc, DeltaAICc, weight) %>%
   arrange(AICc)
 
+table_s7
+
+# ---- Save tables ----
 write_csv(
   table_s7,
   file.path(tables_dir, "Table_S7_AICc_model_selection.csv")
 )
-
-kable(
-  table_s7,
-  caption = "Table S7. AICc model selection summary for NB-GLMM."
-)
-
-lrt_df <- as.data.frame(lrt_nb)
-
-write_xlsx(
-  list(
-    Descriptive_statistics = desc_stats,
-    Spearman_correlations  = spearman_table,
-    Model_selection        = model_selection_df,
-    Best_model             = table_best,
-    Likelihood_ratio       = lrt_df
-  ),
-  path = file.path(tables_dir, "NB_GLMM_tables_all.xlsx")
-)
-
-print(model_selection_df)
-print(table_best)
-print(lrt_df)
 
 # =============================================================================
 # 9. Plot observed detections vs sine/cosine seasonal pattern (Figure 5)
 # =============================================================================
 
 ## 1. Collapse tree-level data to monthly totals -----------------------------
-plot_df <- aot_tm %>%
+plot_df <- model_df %>%
   filter(Month >= as.Date("2023-08-01")) %>%
   group_by(Month) %>%
   summarise(
     Observed = sum(Count, na.rm = TRUE),
-    sinM     = unique(sinM),
-    cosM     = unique(cosM),
+    sinM     = dplyr::first(sinM),
+    cosM     = dplyr::first(cosM),
     .groups  = "drop"
   ) %>%
   mutate(
@@ -486,9 +517,9 @@ plot_long <- plot_df %>%
   mutate(
     Curve = dplyr::recode(
       Curve,
-      "Observed"    = "Aotus detections",
-      "sinM_scaled" = "Sine wave",
-      "cosM_scaled" = "Cosine wave"
+      Observed    = "Aotus detections",
+      sinM_scaled = "Sine wave",
+      cosM_scaled = "Cosine wave"
     )
   )
 
@@ -527,14 +558,14 @@ p <- ggplot(
   ) +
   theme_minimal(base_size = 12) +
   theme(
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    panel.border     = element_rect(colour = "black", fill = NA, linewidth = 0.5),
-    axis.line        = element_blank(),
-    axis.text.x      = element_text(angle = 0, hjust = 0.5),
-    legend.position  = "right",
-    legend.background = element_rect(fill = "white", colour = NA),
-    plot.margin      = margin(5, 5, 5, 15)
+    panel.grid.major   = element_blank(),
+    panel.grid.minor   = element_blank(),
+    panel.border       = element_rect(colour = "black", fill = NA, linewidth = 0.5),
+    axis.line          = element_blank(),
+    axis.text.x        = element_text(angle = 0, hjust = 0.5),
+    legend.position    = "right",
+    legend.background  = element_rect(fill = "white", colour = NA),
+    plot.margin        = margin(5, 5, 5, 15)
   )
 
 print(p)
