@@ -175,9 +175,9 @@ This script:
   - `data/processed/Pheno_date_jul23_nov24.csv`
   - `data/processed/Climate_date_aug23_nov24.csv`
 
-- Aggregates all datasets to **monthly time series** (August 2023 → November 2024):
+- Aggregates all datasets to a **monthly time series** (August 2023 → November 2024):
   - Monthly Aotus detections  
-  - Mean monthly intensity of flowering phases (flower buds, open flowers)  
+  - Monthly mean intensity of flowering phases (flower buds, open flowers)  
   - Monthly precipitation
  
 - Aggregates phenology dataset to **tree x month time series** (August 2023 → November 2024):
@@ -189,13 +189,13 @@ This script:
   - `data/processed/Pheno_tm_FB_OF.csv` 
 
 - Creates the base for **Figure 2** combining:
-  - detections,
-  - phenology intensity of flower buds and open flowers phases
-  - precipitation
-  - Period of infant presence in recordings (Jan–Apr 2024)
+  - monthly Aotus detections
+  - monthly mean phenology of flower buds and open flowers
+  - monthly precipitation
+  - a highlighted time window corresponding to the observed infant presence period (Jan–Apr 2024)
 
 - Exports the base for Figure 2:
-  - `output/figures/Figure_2_tripanel_annual_pattern.pdf`
+  - `output/figures/Figure_2.pdf`
 
 - Writes session information for reproducibility to:  
   `output/logs/sessionInfo_annual_trend.txt`
@@ -221,7 +221,7 @@ This script:
   - Tree x Month phenology (flower buds, open flowers)  
     → `data/processed/Pheno_tm_FB_OF.csv`
   - Monthly precipitation  
-    → `data/processed/Climate_monthly_precipitations.csv`
+    → `data/processed/Climate_monthly_precipitation.csv`
   - Tree-level independent detections  
     → `data/processed/Aotus_Ind_Det_timeprocessed_03.csv`
 
@@ -235,15 +235,16 @@ This script:
   - Variance Inflation Factors (VIF)  
 
 - Fits a negative-binomial GLMM (glmmTMB):
-  - Performs AICc-based model selection (MuMIn)
-  - Identifies the best-fitting model  
-  - Exports **Table 3** (fixed-effect results)  
-    → `output/tables/Table_3_Best_NB_GLMM.csv`
+  - Identifies the top-ranked model (lowest AICc)
+  - Defines a confidence set of models (ΔAICc ≤ 2)
+  - Performs model averaging across the confidence set
+  - Exports **Table 3** (model-averaged coefficients)
+    → output/tables/Table_3_Model_averaged_coefficients.csv
 
 - Generates diagnostics:
   - DHARMa residual **Figure S2**  
     → `output/figures/Figure_S2_DHARMa_diagnostics.png`
-  - Collinearity & R² calculations
+  - Collinearity diagnostics (Spearman correlations, VIF)
 
 - Produces **Figure 5**:
   - Observed monthly detections vs. sine and cosine seasonal predictors  
