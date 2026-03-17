@@ -3,11 +3,12 @@
 # ----------------------------------------------------------------------------
 # Purpose:
 #   - Read monthly Aotus detections, phenology, and precipitation (from 05_annual_trend)
-#   - Build a monthly summary table with circular month terms 
+#   - Build a monthly summary table and derive circular month predictors (sine and cosine)
 #   - Construct TreeID × Month dataset for NB-GLMM
-#   - Fit NB-GLMM with AICc model selection (glmmTMB + MuMIn)
-#   - Run diagnostics (DHARMa, collinearity, R²)
+#   - Fit NB-GLMM with AICc-based model selection and model averaging (glmmTMB + MuMIn)
+#   - Run diagnostics (DHARMa residual checks, collinearity diagnostics)
 #   - Export key results and create:
+#       - Table 3: Model-averaged coefficients
 #       - Table S5: Descriptive statistics
 #       - Table S6: Spearman correlations
 #       - Table S7: AICc model-selection results

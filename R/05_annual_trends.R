@@ -3,9 +3,9 @@
 # ----------------------------------------------------------------------------
 # Purpose:
 #   - Read Aotus independent detections timeprocessed, phenology, and climate data
-#   - Aggregate to monthly time series and phenology to tree x month time series
-#   - Plot annual trends of Aotus independent detections, phenology, and precipitation
-#   - Save derived datasets generates the base for figure 2
+#   - Aggregate datasets to monthly time series and phenology to tree x month time series
+#   - Plot annual trends of Aotus detections, phenology, and precipitation
+#   - Save derived datasets that form the basis for figure 2
 #
 # How to run:
 #   - Set working directory to the project root:
@@ -76,7 +76,7 @@ write_csv(
 # --- climate: timestamp "YYYY-mm-dd HH:MM:SS" --------------------------------
 clim_date <- clim %>%
   mutate(datetime = ymd_hms(datetime, tz = "UTC"),
-         date     = as_date(datetime)) %>%      # keep Date for filtering
+         date     = as_date(datetime)) %>%
   filter(date >= from, date <= to)
 
 # Save climate with Date column
@@ -98,7 +98,7 @@ det_mo <- aot %>%
   mutate(month = floor_date(date, "month")) %>%
   count(month, name = "detections")
 
-# 5.2a Monthly phenology (mean index per month)
+# 5.2a Monthly phenology (mean class value per month)
 #      FB = Flower buds, OF = Open flowers
 monitored_trees <- sort(unique(aot$TreeID))
 
@@ -111,14 +111,14 @@ ph_mo <- pheno_date %>%
     .by = month
   )
 
-# 5.2b Tree × month phenology (mean class per tree per month)
+# 5.2b Tree × month phenology (mean class value per tree per month)
 #      FB = Flower buds, OF = Open flowers
 from2 <- ymd("2023-07-30")
 
 ph_tm <- pheno_date %>%
   filter(
     date >= from2,
-    date <= to | date == as.Date("2023-07-30"),  # keep the July record to later include H11
+    date <= to,  # keep the July record to later include H11
     ID %in% monitored_trees
   ) %>%
   mutate(
@@ -219,7 +219,7 @@ p1 <- ggplot(det_mo, aes(month, detections)) +
 # 7.2 Phenology
 ph_long <- ph_mo %>%
   pivot_longer(-month, names_to = "series", values_to = "value") %>%
-  mutate(series = recode(series,
+  mutate(series = dplyr::recode(series,
                          flower_buds  = "Flower buds",
                          open_flowers = "Open flowers"))
 
@@ -228,7 +228,7 @@ p2 <- ggplot(ph_long, aes(month, value, colour = series)) +
   geom_smooth(se = FALSE, method = "gam",
               formula = y ~ s(x, bs = "cs"), linewidth = 0.8) +
   x_scale +
-  labs(y = "Phenology (category)", x = NULL, colour = NULL) +
+  labs(y = "Phenology (class)", x = NULL, colour = NULL) +
   base_theme +
   theme(
     axis.text.x  = element_blank(),
