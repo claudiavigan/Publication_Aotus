@@ -1,5 +1,5 @@
 # ============================================================================
-#  01_tree_distances.R
+#  01_tree_distances_MCP.R
 # ----------------------------------------------------------------------------
 # Purpose:
 #   - Compute pairwise distances among Handroanthus trees and the
