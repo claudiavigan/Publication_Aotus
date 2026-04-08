@@ -1,8 +1,7 @@
-cff-version: 1.2.0
+cff-version: Aot.r1.2
 message: "If you use this dataset or repository, please cite it as below."
 title: "Flower feeding and reproductive timing in Spix’s night monkey (*Aotus vociferans*): evidence from arboreal camera traps"
-version: "v1.0.0"
-doi: "110.5281/zenodo.17865847"
+doi: ""
 date-released: "2026-04-08"
 authors:
   - family-names: "Viganò"
