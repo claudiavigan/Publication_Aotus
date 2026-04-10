@@ -283,3 +283,6 @@ cat("Saved tripanel figure to:", figures_dir, "\n")
 sink(file.path(logs_dir, "sessionInfo_annual_trend.txt"))
 sessionInfo()
 sink()
+
+citation("ggplot2")
+packageVersion("ggplot2")
