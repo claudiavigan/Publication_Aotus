@@ -2,14 +2,14 @@
 
 This folder contains the data and code used to reproduce the analyses and figures for the manuscript:
 
-## Flower feeding and reproductive timing in Spix’s night monkey (*Aotus vociferans*): evidence from arboreal camera traps
+## Flower feeding and reproductive timing in Spix’s night monkeys (*Aotus vociferans*): evidence from arboreal camera traps
 
 submitted to *Ecology & Evolution Nature Notes*.
 
 [![DOI](https://zenodo.org/badge/1072125404.svg)](https://doi.org/10.5281/zenodo.17669413)
 
 Citation:
-Viganò, C. (2026). Flower feeding and reproductive timing in Spix’s night monkey (*Aotus vociferans*): evidence from arboreal camera traps. Zenodo. <a href="https://doi.org/10.5281/zenodo.17669413"><img src="https://zenodo.org/badge/1072125404.svg" alt="DOI"></a>
+Viganò, C. (2026). Flower feeding and reproductive timing in Spix’s night monkeys (*Aotus vociferans*): evidence from arboreal camera traps. Zenodo. <a href="https://doi.org/10.5281/zenodo.17669413"><img src="https://zenodo.org/badge/1072125404.svg" alt="DOI"></a>
 
 
 ---
