@@ -1,7 +1,7 @@
 Variable1,Variable2,Spearman_rho
-cosM,FB,-0.7
+cosM,FB_DBH,-0.69
 sinM,PCP,0.6
-sinM,FB,-0.49
-PCP,FB,-0.47
+sinM,FB_DBH,-0.5
+PCP,FB_DBH,-0.47
 cosM,PCP,0.21
 cosM,sinM,-0.01

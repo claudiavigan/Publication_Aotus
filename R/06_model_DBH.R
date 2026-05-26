@@ -1,10 +1,11 @@
 # ============================================================================
-#  06_model_nb_glmm.R
+#  06_model_nb_glmm_DBH.R
 # ----------------------------------------------------------------------------
 # Purpose:
 #   - Read monthly Aotus detections, phenology, and precipitation (from 05_annual_trend)
+#   - Read DBH and perform log transformation 
 #   - Build a monthly summary table and derive circular month predictors (sine and cosine)
-#   - Construct TreeID × Month dataset for NB-GLMM
+#   - Construct TreeID × Month dataset for NB-GLMM (With FB_DBH weighted covariate)
 #   - Fit NB-GLMM with AICc-based model selection and model averaging (glmmTMB + MuMIn)
 #   - Run diagnostics (DHARMa residual checks, collinearity diagnostics)
 #   - Export key results and create:
@@ -19,7 +20,7 @@
 #   - Set working directory to the project root:
 #       Aotus_arboreal_camera_traps/
 #   - Run:
-#       source("R/06_model_nb_glmm.R")
+#       source("R/06_model_nb_glmm_DBH.R")
 #
 # Dependencies:
 #   - dplyr, lubridate, readr, tidyr
@@ -28,7 +29,9 @@
 # ============================================================================
 
 
+# =============================================================================
 # 0. Packages ----------------------------------------------------------------
+# =============================================================================
 required_pkgs <- c(
   "dplyr", "lubridate", "readr", "tidyr",
   "glmmTMB", "DHARMa", "MuMIn", "performance",
@@ -57,10 +60,13 @@ library(reshape2)
 library(ggplot2)
 library(writexl)
 library(knitr)
+library(car)
 
 options(na.action = "na.fail")   # required for MuMIn::dredge()
 
+# =============================================================================
 # 1. Paths -------------------------------------------------------------------
+# =============================================================================
 raw_dir       <- file.path("data", "raw")
 processed_dir <- file.path("data", "processed")
 figures_dir   <- file.path("output", "figures")
@@ -72,14 +78,17 @@ if (!dir.exists(figures_dir))   dir.create(figures_dir,   recursive = TRUE)
 if (!dir.exists(tables_dir))    dir.create(tables_dir,    recursive = TRUE)
 if (!dir.exists(logs_dir))      dir.create(logs_dir,      recursive = TRUE)
 
-# Input files (from previous scripts)
+# Input files (from previous scripts or raw folder)
 file_aot      <- file.path(processed_dir, "Aotus_Ind_Det_timeprocessed_03.csv")
 file_det_mo   <- file.path(processed_dir, "Aotus_monthly_detections.csv")
 file_ph_mo    <- file.path(processed_dir, "Pheno_monthly_FB_OF.csv")
 file_prcp_mo  <- file.path(processed_dir, "Climate_monthly_precipitation.csv")
 file_ph_tm    <- file.path(processed_dir, "Pheno_tm_FB_OF.csv")
+file_dbh      <- file.path(raw_dir, "Tree_DBH.csv")
 
+# =============================================================================
 # 2. Load csvs ---------------------------------------------------------------
+# =============================================================================
 
 # a) Independent detections (tree × detection events)
 aot <- read.csv(
@@ -116,14 +125,26 @@ prcp_mo <- read.csv(
 )
 str(prcp_mo)
 
-# Quick structure check 
-str(aot)
-str(det_mo)
-str(ph_mo)
-str(ph_tm)
-str(prcp_mo)
+# e) DBH ---------------------------------------------------------
+DBH <- read.csv(
+  file_dbh,
+  stringsAsFactors = FALSE
+)
+str(DBH)
 
+# Log-transform DBH before modelling 
+DBH_log <- DBH %>%
+  mutate(
+    DBH_log = log(DBH)
+  )
+
+str(DBH_log)
+
+
+# =============================================================================
 # 3. Build monthly descriptive dataset  -------------------------------------------
+# =============================================================================
+
 # Make sure 'month' is in Date format
 det_mo  <- det_mo  %>% mutate(month = as.Date(month))
 ph_mo   <- ph_mo   %>% mutate(month = as.Date(month))
@@ -145,7 +166,10 @@ monthly_df <- det_mo %>%
 str(monthly_df)
 summary(monthly_df)
 
-# # 4. Build TreeID × Month dataset for NB-GLMM -------------------------------
+# =============================================================================
+# 4. Build TreeID × Month dataset for NB-GLMM -------------------------------
+# =============================================================================
+
 # Aotus detections: build tree × month counts from the event-level dataset
 aot_tm <- aot %>%
   mutate(
@@ -171,7 +195,7 @@ aot_tm <- aot_tm %>%
   )
 
 # Join tree × month phenology and monthly precipitation
-model_df <- aot_tm %>%
+model_df_dbh <- aot_tm %>%
   left_join(
     ph_tm %>%
       select(TreeID, month, FB = flower_buds, OF = open_flowers),
@@ -182,19 +206,26 @@ model_df <- aot_tm %>%
       rename(Month = month, PCP = precip_mm),
     by = "Month"
   ) %>%
+  # DBH added
+  left_join(
+    DBH_log %>%
+      select(TreeID, DBH, DBH_log),
+    by = "TreeID"
+  ) %>%
+  
   mutate(
     MonthNum = month(Month),
     sinM     = sin(2 * pi * MonthNum / 12),
-    cosM     = cos(2 * pi * MonthNum / 12)
+    cosM     = cos(2 * pi * MonthNum / 12),
+    # DBH-weighted flower bud covariate
+    FB_DBH = FB * DBH_log
   ) %>%
   arrange(TreeID, Month)
 
-str(model_df)
-summary(model_df)
-print(model_df, n = 20)
+str(model_df_dbh)
 
 # =============================================================================
-# 5. Exploratory Descriptive Statistics, Spearman correlations & VIF
+# 5. Descriptive statistics, DBH-weighted Spearman correlations & VIF
 # =============================================================================
 
 # ---- Descriptive statistics (ECOLOGICAL VARIABLES ONLY) ----
@@ -235,20 +266,23 @@ kable(
   caption = "Table S5. Descriptive statistics for ecological variables used in NB-GLMM."
 )
 
-# ---- Spearman correlations (NO OF here: just covariates for model included) --
-vars_cor <- c("FB", "PCP", "sinM", "cosM")
+# ---- Spearman correlations including DBH-weighted FB ----
+vars_cor_dbh <- c("FB_DBH", "PCP", "sinM", "cosM")
 
-cor_res <- Hmisc::rcorr(as.matrix(model_df[vars_cor]), type = "spearman")
+cor_res_dbh <- Hmisc::rcorr(
+  as.matrix(model_df_dbh[vars_cor_dbh]),
+  type = "spearman"
+)
 
-rho <- cor_res$r
+rho_dbh <- cor_res_dbh$r
 
-rho_long <- reshape2::melt(
-  rho,
+rho_long_dbh <- reshape2::melt(
+  rho_dbh,
   varnames = c("Variable1", "Variable2"),
   value.name = "Spearman_rho"
 )
 
-spearman_table <- rho_long %>%
+spearman_table_dbh <- rho_long_dbh %>%
   filter(Variable1 != Variable2) %>%
   filter(!duplicated(t(apply(.[, c("Variable1", "Variable2")], 1, sort)))) %>%
   arrange(desc(abs(Spearman_rho))) %>%
@@ -256,119 +290,122 @@ spearman_table <- rho_long %>%
     Spearman_rho = round(Spearman_rho, 2)
   )
 
-spearman_table
+spearman_table_dbh
+
 
 # ---- Spearman correlation Table S6 ----
 write_csv(
-  spearman_table,
+  spearman_table_dbh,
   file.path(tables_dir, "Table_S6_Spearman_correlations.csv")
 )
 
 kable(
-  spearman_table,
+  spearman_table_dbh,
   caption = "Table S6. Spearman’s rank correlation coefficients (ρ) among covariates used in NB-GLMMs."
 )
 
 # ---- VIF (NO OF here: just covariates for model included) --
-library(car)
 
-vif_model <- lm(Count ~ FB + PCP + sinM + cosM, data = model_df)
-vif_values <- car::vif(vif_model)
+vif_model_dbh <- lm(Count ~ FB_DBH + PCP + sinM + cosM, data = model_df_dbh)
+vif_values_dbh <- car::vif(vif_model_dbh)
 
-vif_values
+vif_values_dbh
 
 # =============================================================================
 # 6. Tree × Month NB-GLMM with AICc model selection & Model Averaging
 # =============================================================================
-str(model_df)
+str(model_df_dbh)
 
-# ---- Keep only variables needed for modelling  ----
-aot_tm_clean <- model_df %>%
-  select(TreeID, Month, Count, FB, PCP, sinM, cosM) 
+# ---- Keep only variables needed for modelling ----
+aot_tm_clean_dbh <- model_df_dbh %>%
+  select(TreeID, Month, Count, FB_DBH, PCP, sinM, cosM)
 
-sum(is.na(aot_tm_clean))
-stopifnot(sum(is.na(aot_tm_clean)) == 0)
+sum(is.na(aot_tm_clean_dbh))
+stopifnot(sum(is.na(aot_tm_clean_dbh)) == 0)
 
-str(aot_tm_clean)
-head(aot_tm_clean)
+str(aot_tm_clean_dbh)
+head(aot_tm_clean_dbh)
 
 # ---- Overdispersion check: variance / mean  ----
-mean_count <- mean(aot_tm_clean$Count, na.rm = TRUE)
-var_count  <- var(aot_tm_clean$Count, na.rm = TRUE)
-disp_ratio <- var_count / mean_count
+mean_count_dbh <- mean(aot_tm_clean_dbh$Count, na.rm = TRUE)
+var_count_dbh  <- var(aot_tm_clean_dbh$Count, na.rm = TRUE)
+disp_ratio_dbh <- var_count_dbh / mean_count_dbh
 
-cat("Mean Count:", round(mean_count, 2), "\n")
-cat("Variance of Count:", round(var_count, 2), "\n")
-cat("Variance/Mean ratio:", round(disp_ratio, 2), "\n")
+cat("Mean Count:", round(mean_count_dbh, 2), "\n")
+cat("Variance of Count:", round(var_count_dbh, 2), "\n")
+cat("Variance/Mean ratio:", round(disp_ratio_dbh, 2), "\n")
 
 # Global model
-global_nb <- glmmTMB(
-  Count ~ FB + PCP + sinM + cosM + (1 | TreeID),
+global_nb_dbh <- glmmTMB(
+  Count ~ FB_DBH + PCP + sinM + cosM + (1 | TreeID),
   family  = nbinom2,
-  data    = aot_tm_clean,
+  data    = aot_tm_clean_dbh,
   control = glmmTMBControl(optCtrl = list(iter.max = 1e5, eval.max = 1e5))
 )
 
-summary(global_nb)
+summary(global_nb_dbh)
 
 # Model selection with AICc & Top Models
 options(na.action = "na.fail")
 
-dredge_nb <- MuMIn::dredge(global_nb, rank = "AICc")
-print(dredge_nb)
+dredge_nb_dbh <- MuMIn::dredge(global_nb_dbh, rank = "AICc")
+print(dredge_nb_dbh)
 
 # 10 best Models
-top_nb <- as.data.frame(dredge_nb) %>%
+top_nb <- as.data.frame(dredge_nb_dbh) %>%
   arrange(AICc)
 
 head(top_nb, 10)
 
 # Best model (lowest AICc)
-best_nb <- MuMIn::get.models(dredge_nb, subset = 1)[[1]]
-summary(best_nb)
+best_nb_dbh <- MuMIn::get.models(dredge_nb_dbh, subset = 1)[[1]]
+summary(best_nb_dbh)
 
 # ---- Confidence set: models within delta AICc <= 2 ----
-conf_set <- MuMIn::get.models(dredge_nb, subset = delta <= 2)
+conf_set_dbh <- MuMIn::get.models(
+  dredge_nb_dbh,
+  subset = delta <= 2
+)
 
-length(conf_set)
+length(conf_set_dbh)
 
 # ---- Model averaging across the confidence set ----
-avg_nb <- MuMIn::model.avg(conf_set)
+avg_nb_dbh <- MuMIn::model.avg(conf_set_dbh)
 
-summary(avg_nb)
+summary(avg_nb_dbh)
 
 # ---- Table 3: Model-averaged coefficients ----
-avg_coef <- summary(avg_nb)$coefmat.full
+avg_coef_dbh <- summary(avg_nb_dbh)$coefmat.full
 
-table_3 <- as.data.frame(avg_coef) %>%
+table_3_dbh <- as.data.frame(avg_coef_dbh) %>%
   tibble::rownames_to_column("Predictor") %>%
   
-  # Clean predictor names
-  mutate(
-    Predictor = dplyr::recode(
-      Predictor,
-      "cond((Int))" = "Intercept",
-      "cond(PCP)"   = "PCP",
-      "cond(sinM)"  = "sinM",
-      "cond(FB)"    = "FB",
-      "cond(cosM)"  = "cosM"
-    )
-  ) %>%
+  # ---- Clean predictor names ----
+mutate(
+  Predictor = dplyr::recode(
+    Predictor,
+    "cond((Int))"  = "Intercept",
+    "cond(PCP)"    = "PCP",
+    "cond(sinM)"   = "sinM",
+    "cond(FB_DBH)" = "FB_DBH",
+    "cond(cosM)"   = "cosM"
+  )
+) %>%
   
-  # Force logical order
-  mutate(
-    Predictor = factor(
-      Predictor,
-      levels = c("Intercept", "FB", "PCP", "sinM", "cosM")
-    )
-  ) %>%
+  # ---- Force logical order ----
+mutate(
+  Predictor = factor(
+    Predictor,
+    levels = c("Intercept", "FB_DBH", "PCP", "sinM", "cosM")
+  )
+) %>%
   
-  # Compute rate ratios and CI
-  mutate(
-    Rate_ratio = exp(Estimate),
-    CI_low  = exp(Estimate - 1.96 * `Adjusted SE`),
-    CI_high = exp(Estimate + 1.96 * `Adjusted SE`)
-  ) %>%
+  # ---- Compute rate ratios and CI ----
+mutate(
+  Rate_ratio = exp(Estimate),
+  CI_low  = exp(Estimate - 1.96 * `Adjusted SE`),
+  CI_high = exp(Estimate + 1.96 * `Adjusted SE`)
+) %>%
   
   # Format values
   mutate(
@@ -392,10 +429,10 @@ table_3 <- as.data.frame(avg_coef) %>%
   
   arrange(Predictor)
 
-table_3
+table_3_dbh
 
 write_csv(
-  table_3,
+  table_3_dbh,
   file.path(tables_dir, "Table_3_Model_averaged_coefficients.csv")
 )
 
@@ -403,18 +440,18 @@ write_csv(
 # 7. Diagnostics & validation
 # =============================================================================
 
-sim_nb <- DHARMa::simulateResiduals(best_nb, n = 1000)
+sim_nb_dbh <- DHARMa::simulateResiduals(best_nb_dbh, n = 1000)
 
 # ---- DHARMa plots on screen ----
-plot(sim_nb)
+plot(sim_nb_dbh)
 
-DHARMa::testDispersion(sim_nb)
-DHARMa::testZeroInflation(sim_nb)
-DHARMa::testUniformity(sim_nb)
+DHARMa::testDispersion(sim_nb_dbh)
+DHARMa::testZeroInflation(sim_nb_dbh)
+DHARMa::testUniformity(sim_nb_dbh)
 
 # ---- Save DHARMa diagnostic Figure S2 ----
 png(
-  filename = file.path(figures_dir, "Figure_S2_DHARMa_diagnostics.png"),
+  filename = file.path(figures_dir, "Figure_S2_DHARMa_dbh.png"),
   width    = 7.5,   # more horizontal room
   height   = 4.5,   # a bit shorter vertically
   units    = "in",
@@ -423,7 +460,7 @@ png(
 
 par(mar = c(4.5, 4.5, 2, 1), oma = c(0, 0, 2, 0))  # tighter right margin
 
-plot(sim_nb)
+plot(sim_nb_dbh)
 
 dev.off()
 
@@ -432,8 +469,8 @@ dev.off()
 # =============================================================================
 
 # ---- Best-model coefficient table ----
-fixef_nb <- broom.mixed::tidy(
-  best_nb,
+fixef_nb_dbh <- broom.mixed::tidy(
+  best_nb_dbh,
   effects     = "fixed",
   conf.int    = TRUE,
   conf.method = "Wald",
@@ -449,28 +486,31 @@ fixef_nb <- broom.mixed::tidy(
     RateRatio, CI_low, CI_high
   )
 
-fixef_nb
+fixef_nb_dbh
 
 # ---- AICc model-selection table ----
-model_selection_df <- as.data.frame(dredge_nb)
+model_selection_df_dbh <- as.data.frame(dredge_nb_dbh)
 
 extract_terms <- function(df_row) {
   nm <- names(df_row)
   term_cols <- nm[grepl("^cond\\(", nm) & nm != "cond((Int))"]
   included  <- term_cols[!is.na(df_row[term_cols])]
+  
   if (length(included) == 0) return("(Intercept-only)")
+  
   clean <- gsub("^cond\\(|\\)$", "", included)
   clean <- sort(clean)
+  
   paste(clean, collapse = " + ")
 }
 
-model_selection_df$Model_terms <- vapply(
-  seq_len(nrow(model_selection_df)),
-  function(i) extract_terms(model_selection_df[i, , drop = FALSE]),
+model_selection_df_dbh$Model_terms <- vapply(
+  seq_len(nrow(model_selection_df_dbh)),
+  function(i) extract_terms(model_selection_df_dbh[i, , drop = FALSE]),
   FUN.VALUE = character(1)
 )
 
-table_s7 <- model_selection_df %>%
+table_s7_dbh <- model_selection_df_dbh %>%
   mutate(
     logLik    = round(logLik, 2),
     AICc      = round(AICc, 2),
@@ -480,11 +520,11 @@ table_s7 <- model_selection_df %>%
   select(Model_terms, df, logLik, AICc, DeltaAICc, weight) %>%
   arrange(AICc)
 
-table_s7
+table_s7_dbh
 
 # ---- Save tables ----
 write_csv(
-  table_s7,
+  table_s7_dbh,
   file.path(tables_dir, "Table_S7_AICc_model_selection.csv")
 )
 
@@ -493,7 +533,7 @@ write_csv(
 # =============================================================================
 
 ## 1. Collapse tree-level data to monthly totals -----------------------------
-plot_df <- model_df %>%
+plot_df <- model_df_dbh %>%
   filter(Month >= as.Date("2023-08-01")) %>%
   group_by(Month) %>%
   summarise(
