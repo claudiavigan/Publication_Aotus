@@ -24,7 +24,7 @@ Viganò, C. (2026). Flower feeding and reproductive timing in Spix’s night mon
     │   ├── 03_behavior.R           # Calculates behavior proportions (Table S4, Figure 3)
     │   ├── 04_night_activiy.R      # Calulates the night activity pattern of Aotus (Figure 4)
     │   ├── 05_annual_trends.R      # Plot annual trends of Aotus detections, infant presence, phenology and precipitation (Figure 2)
-    │   ├── 06_model.R              # Runs the model and generates (Figures: 5 and S2 ; Tables: 3 and S5, S6, S7)
+    │   ├── 06_model_DBH.R          # Runs the model and generates (Figures: 5 and S2 ; Tables: 3 and S5, S6, S7)
     │
     ├── data/
     │   ├── raw/                    # Raw, unchanged input data
@@ -209,7 +209,7 @@ Run:
 
 ### 3.6. Script 06 — Negative-Binomial GLMM: seasonal drivers of *Aotus vociferans*' detections  
 
-**Script:** `R/06_model.R`
+**Script:** `R/06_model_DBH.R`
 
 This script:
 
@@ -224,6 +224,8 @@ This script:
     → `data/processed/Climate_monthly_precipitation.csv`
   - Tree-level independent detections  
     → `data/processed/Aotus_Ind_Det_timeprocessed_03.csv`
+   - Trees' DBH measurements  
+    → `data/raw/Tree_DBH.csv` 
 
 - Builds datasets required for modelling
 
