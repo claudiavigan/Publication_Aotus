@@ -1,5 +1,5 @@
 # ============================================================================
-#  06_model_nb_glmm_DBH.R
+#  06_model_DBH.R
 # ----------------------------------------------------------------------------
 # Purpose:
 #   - Read monthly Aotus detections, phenology, and precipitation (from 05_annual_trend)
