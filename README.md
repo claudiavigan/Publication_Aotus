@@ -207,7 +207,7 @@ Run:
 
 ---
 
-### 3.6. Script 06 — Negative-Binomial GLMM: seasonal drivers of *Aotus vociferans*' detections  
+### 3.6. Script 06 — Negative-Binomial GLMM: seasonal drivers of *Aotus vociferans* detections  
 
 **Script:** `R/06_model_DBH.R`
 
@@ -227,7 +227,7 @@ This script:
    - Trees' DBH measurements  
     → `data/raw/Tree_DBH.csv` 
 
-- Builds datasets required for modelling
+- Builds datasets required for modelling including a DBH-weighted flower-bud covariate (FB_DBH)
 
 - Computes exploratory summaries and exports:
   - **Table S5** — Descriptive statistics  
@@ -245,12 +245,12 @@ This script:
 
 - Generates diagnostics:
   - DHARMa residual **Figure S2**  
-    → `output/figures/Figure_S2_DHARMa_diagnostics.png`
+    → `output/figures/Figure_S2_DHARMa_dbh.png`
   - Collinearity diagnostics (Spearman correlations, VIF)
 
 - Produces **Figure 5**:
   - Observed monthly detections vs. sine and cosine seasonal predictors  
-    → `output/figures/Figure_5_sin_Aot_cos.png`
+    → `output/figures/Figure_5_sin_Aot_cos_NEW.png`
 
 - Writes session information for reproducibility to:  
   `output/logs/sessionInfo_model.txt`
